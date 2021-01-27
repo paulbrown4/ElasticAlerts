@@ -11,7 +11,7 @@ elasticsearch:
   port: "9200"
   ssl: true
   username: "elastic"
-  password: ""
+  password: "fe9Chenoo"
   #query: {"query":{"match_all": {}}}
   #index_pattern: ["syniverse-*"]
 
@@ -21,26 +21,28 @@ alerts:
   - name: "alert-1"
     index_pattern: "syniverse-*"
     # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
-    time_period: "1h"
+    time_period: "90d"
     frequency: ""
     field: "statusCode"
     term: "4"
     negate: true
+    recipient: "pbrown@dccllc.net"
 
   - name: "alert-2"
     index_pattern: "packetbeat-*"
     # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
-    time_period: "1h"
+    time_period: "90d"
     frequency: ""
     field: "sip.method"
     term: "INVITE"
     negate: false
+    recipient: "pbrown@dccllc.net"
     
 output:
    smtp:
       enabled: true
       host: "smtp.gmail.com"
-      username: "@gmail.com"
-      password: ""
+      username: "paulbrown4@gmail.com"
+      password: "ghostP89!@#"
       port: "587"
    
