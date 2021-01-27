@@ -11,7 +11,7 @@ elasticsearch:
   port: "9200"
   ssl: true
   username: "elastic"
-  password: "fe9Chenoo"
+  password: ""
   #query: {"query":{"match_all": {}}}
   #index_pattern: ["syniverse-*"]
 
@@ -40,7 +40,7 @@ output:
    smtp:
       enabled: true
       host: "smtp.gmail.com"
-      username: "paulbrown4@gmail.com"
-      password: "ghostP89!@#"
+      username: "@gmail.com"
+      password: ""
       port: "587"
    
