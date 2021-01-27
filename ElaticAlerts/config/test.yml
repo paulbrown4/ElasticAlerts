@@ -18,31 +18,33 @@ elasticsearch:
 # Configured alerts
 alerts:
   # The name of the configured alert
-  - name: "alert-1"
+  - name: "HLR Link Status"
     index_pattern: "syniverse-*"
     # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
-    time_period: "90d"
+    time_period: "5m"
     frequency: ""
-    field: "statusCode"
-    term: "4"
-    negate: true
+    field: "status"
+    term: "OutOfService"
+    negate: false
     recipient: "pbrown@dccllc.net"
 
-  - name: "alert-2"
+  - name: "911 Call"
     index_pattern: "packetbeat-*"
     # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
-    time_period: "90d"
+    time_period: "5m"
     frequency: ""
-    field: "sip.method"
-    term: "INVITE"
+    field: "tags"
+    term: "cusotmerfilter"
     negate: false
     recipient: "pbrown@dccllc.net"
     
 output:
    smtp:
-      enabled: true
+      enabled: false
       host: "smtp.gmail.com"
       username: "paulbrown4@gmail.com"
       password: "ghostP89!@#"
       port: "587"
+   console:
+      enabled: true
    

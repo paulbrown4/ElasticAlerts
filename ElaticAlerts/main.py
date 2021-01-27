@@ -1,6 +1,6 @@
 #!/bin/python
 
-import smtplib, socket
+import smtplib, time
 import yaml, json, requests, urllib3
 from requests.auth import HTTPBasicAuth
 from jsonpath_rw import parse
@@ -22,9 +22,10 @@ def alertQuery(index_pattern, field, term,time_period, negate) :
     if negate == False :
         operator = "must"
 
-    jquery = json.loads('{  "query": { "bool": {"' + operator + '": [{"term": {"' + field + '": "' + term + '"}}],"filter":[{"exists":{ "field": "' + field + '" }},{ "range": { "@timestamp":{ "gte": "now-' + time_period + '" }}}]}}}')
+    jquery = json.loads('{  "query": { "bool": {"' + operator + '": [{"match": {"' + field + '": "' + term + '"}}],"filter":[{"exists":{ "field": "' + field + '" }},{ "range": { "@timestamp":{ "gte": "now-' + time_period + '" }}}]}}}')
     headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
-
+    #print(jquery)
+    
     if cfg['elasticsearch']['ssl'] == True: 
         queryURL = "https://"  + cfg["elasticsearch"]["host"]  + ":" + cfg["elasticsearch"]["port"] + "/" + index_pattern + "/_search"
         try:
@@ -52,7 +53,7 @@ def getFieldNames(field) :
         
         return parsedField
             
-def sendEvents(host, port, username,recipient, password, message) :
+def sendEvents(host, port, username, recipient, password, message) :
     #sender = socket.getfqdn()
     
     sent_from = username
@@ -80,15 +81,29 @@ Subject: %s
     except smtplib.SMTPException :
         print("Error: unable to send email")
 
-# This is where we check all configured alerts.
-for alert in cfg['alerts'] :
-    json_response = alertQuery(alert['index_pattern'],alert['field'],alert['term'],alert['time_period'], alert['negate'])
-    #print(json.dumps(json_response, indent=4))
-    
-    for hit in json_response['hits']['hits'] :
-        #print(json.dumps(hit['_index'], indent=2))
-        output = parse(alert['field']).find(hit['_source'])
-        print(output[0].value)
+def main():
+    # This is where we check all configured alerts.
+    for alert in cfg['alerts'] :
+        json_response = alertQuery(alert['index_pattern'],alert['field'],alert['term'],alert['time_period'], alert['negate'])
+        #print(json.dumps(json_response, indent=4))
+        
+        for hit in json_response['hits']['hits'] :
+            #print(json.dumps(hit['_index'], indent=2))
+            alertValue = parse(alert['field']).find(hit['_source'])
+            
+            alertOut = "Alert matched: " + str(alertValue[0].value) + "\n" + "Time: " + hit['_source']['@timestamp'] + "\n\n" + "Full message: \n\n" + json.dumps(hit['_source'], indent=2)
+            #alertOut = "Alert matched: " + str(alertValue[0].value) + "\n" + "Time: " + hit['_source']['@timestamp'] + "\n\n" + "Full message: \n\n" + json.dumps(hit['_source'])
+            
+            if cfg['output']['console']['enabled'] :
+                print(alertOut)
+            
+            if cfg['output']['smtp']['enabled'] :
+                sendEvents(cfg['output']['smtp']['host'] , cfg['output']['smtp']['port'] , cfg['output']['smtp']['username'], alert['recipient'], cfg['output']['smtp']['password'] , alertOut)        
 
-        #if cfg['output']['smtp']['enabled'] :
-        #    sendEvents(cfg['output']['smtp']['host'] , cfg['output']['smtp']['port'] , cfg['output']['smtp']['username'], alert['recipient'], cfg['output']['smtp']['password'] , json.dumps(hit['_source'], indent=2))        
+
+if __name__ == "__main__":
+    while True:
+        main()
+        time.sleep(int(cfg['defaults']['alert_period']))
+        
+    
