@@ -1,0 +1,30 @@
+---
+# Configuration file for ElasticAlerts process
+
+# Default interval to run check in seconds
+defaults:
+  alert_period: "300"
+
+# Elasticsearch node for queries
+elasticsearch.host: "localhost"
+elasticsearch.port: "9200"
+elasticsearch.ssl: true
+elasticsearch.username: "elastic"
+elasticsearch.password: "<password>"
+
+# Configured alerts
+alerts:
+  # The name of the configured alert
+  - name: "alert-1"
+    index_pattern: [""]
+    # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
+    time_period: "1h"
+    frequency: ""
+    query: ""
+
+  - name: "alert-2"
+    index_pattern: [""]
+    time_period: "1h"
+    frequency: ""
+    query: ""
+     
