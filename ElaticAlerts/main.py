@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 
 import smtplib, time, logging, os
 import yaml, json, requests, urllib3
@@ -10,7 +10,7 @@ if not os.path.exists('/var/log/ElasticAlerts'):
     os.makedirs('/var/log/ElasticAlerts')
 
 # Setup the logger
-logging.basicConfig(filename="/var/log/ElasticAlerts/ElasticAlerts.log", 
+logging.basicConfig(filename="/var/log/ElasticAlerts/ElaticAlerts.log", 
                 format='%(asctime)s %(message)s', 
                 filemode='w') 
 logger=logging.getLogger() 
@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Import the alerts configuration
-file = open('config/test.yml','r')
+file = open('/opt/ElasticAlerts/ElaticAlerts/config/test.yml','r')
 cfg = yaml.load(file, Loader=yaml.FullLoader)
     
 #def alertQuery(index_pattern,time_period,frequency, query):
