@@ -31,20 +31,23 @@ alerts:
   - name: "911 Call"
     index_pattern: "packetbeat-*"
     # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
-    time_period: "5m"
+    time_period: "90d"
     frequency: ""
     field: "tags"
     term: "cusotmerfilter"
     negate: false
     recipient: "pbrown@dccllc.net"
-    
+        
 output:
    smtp:
-      enabled: true
+      enabled: false
       host: "smtp.gmail.com"
       username: "paulbrown4@gmail.com"
       password: "ghostP89!@#"
       port: "587"
    console:
       enabled: false
+   log:
+      enabled: true
+      path: "/var/log/ElasticAlerts"
    

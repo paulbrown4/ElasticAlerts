@@ -1,10 +1,20 @@
 #!/bin/python
 
-import smtplib, time
+import smtplib, time, logging, os
 import yaml, json, requests, urllib3
 from requests.auth import HTTPBasicAuth
 from jsonpath_rw import parse
 #from dictor import dictor
+
+if not os.path.exists('/var/log/ElasticAlerts'):
+    os.makedirs('/var/log/ElasticAlerts')
+
+# Setup the logger
+logging.basicConfig(filename="/var/log/ElasticAlerts/ElasticAlerts.log", 
+                format='%(asctime)s %(message)s', 
+                filemode='w') 
+logger=logging.getLogger() 
+logger.setLevel(logging.DEBUG) 
 
 # Disable SSL certificate warnings in case self-signed certificates are being used
 # It is recommended to use a valid certificate
@@ -77,33 +87,48 @@ Subject: %s
         smtpObj.sendmail(sent_from, to, email_text)    
         smtpObj.close()     
         
-        print("Successfully sent email")
+        logger.info("Successfully sent email")
+        #print("Successfully sent email")
     except smtplib.SMTPException :
-        print("Error: unable to send email")
+        logger.warning("Error: unable to send email")
+        #print("Error: unable to send email")
 
 def main():
+    
     # This is where we check all configured alerts.
     for alert in cfg['alerts'] :
         json_response = alertQuery(alert['index_pattern'],alert['field'],alert['term'],alert['time_period'], alert['negate'])
-        #print(json.dumps(json_response, indent=4))
-        
-        for hit in json_response['hits']['hits'] :
-            #print(json.dumps(hit['_index'], indent=2))
-            alertValue = parse(alert['field']).find(hit['_source'])
-            
-            alertOut = "Alert matched: " + str(alertValue[0].value) + "\n" + "Time: " + hit['_source']['@timestamp'] + "\n\n" + "Full message: \n\n" + json.dumps(hit['_source'], indent=2)
-            #alertOut = "Alert matched: " + str(alertValue[0].value) + "\n" + "Time: " + hit['_source']['@timestamp'] + "\n\n" + "Full message: \n\n" + json.dumps(hit['_source'])
-            
-            if cfg['output']['console']['enabled'] :
-                print(alertOut)
-            
-            if cfg['output']['smtp']['enabled'] :
-                sendEvents(cfg['output']['smtp']['host'] , cfg['output']['smtp']['port'] , cfg['output']['smtp']['username'], alert['recipient'], cfg['output']['smtp']['password'] , alertOut)        
+              
+        if json_response['hits']['total']['value'] != 0 :
+            for hit in json_response['hits']['hits'] :
+    
+                alertValue = parse(alert['field']).find(hit['_source'])
+                
+                #alertOut = "Alert matched: " + str(alertValue[0].value) + "\n" + "Time: " + hit['_source']['@timestamp'] + "\n\n" + "Full message: \n\n" + json.dumps(hit['_source'], indent=2)
+                alertOut = "Alert matched: " + str(alertValue[0].value) + "\n" + "Time: " + hit['_source']['@timestamp'] + "\n\n" + "Full message: \n\n" + json.dumps(hit['_source'])
+                
+                if cfg['output']['log']['enabled'] :
+                    logger.debug("Writing to log...")
+                    logger.debug(alertOut)
+                    
+                if cfg['output']['console']['enabled'] :
+                    print(alertOut)
+                
+                if cfg['output']['smtp']['enabled'] :
+                    sendEvents(cfg['output']['smtp']['host'] , cfg['output']['smtp']['port'] , cfg['output']['smtp']['username'], alert['recipient'], cfg['output']['smtp']['password'] , alertOut)        
 
+        else:
+             logger.debug("No results returned")
+             
+             if cfg['output']['console']['enabled'] :
+                print("No results returned")
 
+            
 if __name__ == "__main__":
-    while True:
-        main()
-        time.sleep(int(cfg['defaults']['alert_period']))
+    #while True:
+    logger.debug("Starting search")
+    main()
+    logger.debug("Run finished")
+        #time.sleep(int(cfg['defaults']['alert_period']))
         
     
