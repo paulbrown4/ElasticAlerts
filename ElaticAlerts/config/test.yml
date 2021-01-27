@@ -40,11 +40,11 @@ alerts:
     
 output:
    smtp:
-      enabled: false
+      enabled: true
       host: "smtp.gmail.com"
       username: "paulbrown4@gmail.com"
       password: "ghostP89!@#"
       port: "587"
    console:
-      enabled: true
+      enabled: false
    
