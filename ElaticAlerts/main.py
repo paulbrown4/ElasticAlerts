@@ -4,6 +4,7 @@ import smtplib, time, logging, os
 import yaml, json, requests, urllib3
 from requests.auth import HTTPBasicAuth
 from jsonpath_rw import parse
+from datetime import datetime
 #from dictor import dictor
 
 if not os.path.exists('/var/log/ElasticAlerts'):
@@ -12,7 +13,7 @@ if not os.path.exists('/var/log/ElasticAlerts'):
 # Setup the logger
 logging.basicConfig(filename="/var/log/ElasticAlerts/ElaticAlerts.log", 
                 format='%(asctime)s %(message)s', 
-                filemode='w') 
+                filemode='a') 
 logger=logging.getLogger() 
 logger.setLevel(logging.DEBUG) 
 
@@ -67,7 +68,7 @@ def sendEvents(host, port, username, recipient, password, message) :
     #sender = socket.getfqdn()
     
     sent_from = username
-    to = [recipient]
+    to = recipient
     subject = 'Elastic Alert Message'
     body = message
     
@@ -77,7 +78,7 @@ To: %s
 Subject: %s
 
 %s
-""" % (sent_from, ", ".join(to), subject, body)
+""" % (sent_from, to, subject, body)
     
     try:
         smtpObj = smtplib.SMTP(host, port)
@@ -87,13 +88,20 @@ Subject: %s
         smtpObj.sendmail(sent_from, to, email_text)    
         smtpObj.close()     
         
-        logger.info("Successfully sent email")
-        #print("Successfully sent email")
+        logger.info("Successfully sent email to " + str(recipient))
+        
+        if cfg['output']['console']['enabled'] : 
+            print("Successfully sent email to " + str(recipient))
+
     except smtplib.SMTPException :
-        logger.warning("Error: unable to send email")
-        #print("Error: unable to send email")
+        logger.warning("Error: unable to send email to " + str(recipient))
+        
+        if cfg['output']['console']['enabled'] : 
+            print("Error: unable to send email to "+ str(recipient))
 
 def main():
+    logger.debug("Starting search")
+    timestamp = datetime.now()
     
     # This is where we check all configured alerts.
     for alert in cfg['alerts'] :
@@ -118,17 +126,12 @@ def main():
                     sendEvents(cfg['output']['smtp']['host'] , cfg['output']['smtp']['port'] , cfg['output']['smtp']['username'], alert['recipient'], cfg['output']['smtp']['password'] , alertOut)        
 
         else:
-             logger.debug("No results returned")
+             logger.debug(timestamp.strftime("%m/%d/%y %H:%M:%S") + ": No results returned for " + alert['name'])
              
              if cfg['output']['console']['enabled'] :
-                print("No results returned")
-
+                print(timestamp.strftime("%m/%d/%y %H:%M:%S") + ": No results returned for " + alert['name'])
+    logger.debug("Run finished")
             
 if __name__ == "__main__":
-    #while True:
-    logger.debug("Starting search")
     main()
-    logger.debug("Run finished")
-        #time.sleep(int(cfg['defaults']['alert_period']))
-        
-    
+
