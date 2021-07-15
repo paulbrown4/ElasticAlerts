@@ -7,11 +7,11 @@ defaults:
 
 # Elasticsearch node for queries
 elasticsearch:
-  host: "192.168.1.78"
+  host: "172.40.0.95"
   port: "9200"
-  ssl: false
+  ssl: true
   username: "elastic"
-  password: ""
+  password: "fe9Chenoo"
   #query: {"query":{"match_all": {}}}
   #index_pattern: ["syniverse-*"]
 
@@ -19,13 +19,15 @@ elasticsearch:
 alerts:
   # The name of the configured alert
   - name: "alert-1"
-    index_pattern: "pfsense-*"
+    index_pattern: "mnshub-hlr-*"
     # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
-    time_period: "1h"
+    time_period: "2d"
     frequency: ""
-    field: "bindrequestedIP"
-    term: "192.168.1.114"
-    negate: false
+    # Define fields that must match to search as a list '{"<field_1>":"<value_1>","<field_2>":"<value_2"}'
+    must: [ 'status:OutOfService','agent.name:BLUE-RT-A','agent.name:BLUE-RT-B' ]
+    # Define fields that must NOT match to search as an array '{"<field_1>":"<value_1>","<field_2>":"<value_2"}'
+    #must_not: {}
+    recipient: ["<email_address>"]
 
 #  - name: "alert-2"
 #    index_pattern: "packetbeat-*"
@@ -38,9 +40,13 @@ alerts:
     
 output:
    smtp:
-      enabled: true
+      enabled: false
       host: "smtp.gmail.com"
-      username: "@gmail.com"
-      password: ""
+      username: "<USERNAME>@gmail.com"
+      password: "<PASSWORD>"
       port: "587"
-   
+   console:
+      enabled: true
+   log:
+      enabled: false
+      path: ""
