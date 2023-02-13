@@ -1,0 +1,45 @@
+---
+# Configuration file for ElasticAlerts process
+
+# Default interval to run check in seconds
+defaults:
+  alert_period: "300"
+
+# Elasticsearch node for queries
+elasticsearch:
+  host: "<IP or HOSTNAME"
+  port: "9200"
+  ssl: true
+  username: "elastic"
+  password: "<PASSWORD>"
+  #query: {"query":{"match_all": {}}}
+  #index_pattern: ["syniverse-*"]
+
+# Configured alerts
+alerts:
+  # This block can be repeated to check for multiple alerts
+  - name: ""    # The name of the configured alert
+    index_pattern: "<INDEX PATTERN>"
+    # The interval for checks in seconds, minutes, hours, or days (i.e.: 1s, 1m, 1h, 1d)
+    time_period: "2m"
+    frequency: ""
+    field: "<FIELD NAME>"
+    term: "<VALUE>"
+    negate: false
+    recipient: ["<EMAIL>"]   # This can be a comma separated list
+
+
+        
+output:
+   smtp:
+      enabled: true
+      host: "<SMTP ADDRESS>"
+      username: "<SMTP USER NAME"
+      password: "<SMTP PASSWORD>"
+      port: "587"
+   console:
+      enabled: true
+   log:
+      enabled: true
+      path: "/var/log/ElasticAlerts"
+   
